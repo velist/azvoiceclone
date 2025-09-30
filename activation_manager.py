@@ -22,6 +22,18 @@ class ActivationManager:
 
     def _ensure_storage(self) -> None:
         if not self.storage_path.exists():
+            # 尝试从环境变量加载默认激活码（用于 Render 等临时文件系统）
+            import os
+            default_codes_json = os.getenv("DEFAULT_ACTIVATION_CODES")
+            if default_codes_json:
+                try:
+                    default_data = json.loads(default_codes_json)
+                    if isinstance(default_data, dict) and "codes" in default_data:
+                        print(f"[激活码管理] 从环境变量加载了 {len(default_data['codes'])} 个默认激活码")
+                        self._save_data(default_data)
+                        return
+                except json.JSONDecodeError:
+                    print("[激活码管理] 警告：DEFAULT_ACTIVATION_CODES 环境变量格式错误")
             self._save_data({"codes": {}})
 
     def _load_data(self) -> Dict[str, Any]:
