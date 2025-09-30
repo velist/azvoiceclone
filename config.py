@@ -9,11 +9,10 @@ ENV_PATH = BASE_DIR / "siliconflowkey.env"
 
 
 def _load_env() -> None:
-    # 优先加载系统环境变量（用于 Render 等平台）
-    load_dotenv(override=False)
-    # 然后加载本地 .env 文件（本地开发时使用）
+    # 先加载本地 .env 文件（如果存在）
     if ENV_PATH.exists():
         load_dotenv(ENV_PATH, override=False)
+    # 系统环境变量会自动覆盖（不需要再次调用 load_dotenv）
 
 
 def get_api_key() -> str:
@@ -25,9 +24,10 @@ API_URL = "https://api.siliconflow.cn/v1/audio/speech"
 VOICE_UPLOAD_URL = "https://api.siliconflow.cn/v1/uploads/audio/voice"
 MODEL_NAME = "IndexTeam/IndexTTS-2"
 
-# 加载环境变量
+# 先加载环境变量
 _load_env()
 
+# 读取配置，系统环境变量优先
 APP_HOST = os.getenv("APP_HOST", "127.0.0.1")
 APP_PORT = int(os.getenv("APP_PORT", "7860"))
 APP_SHARE = False
