@@ -1192,9 +1192,16 @@ def build_admin_app() -> gr.Blocks:
 """
         )
 
-        admin_password = gr.Textbox(label="后台口令", type="password")
+        admin_password = gr.Textbox(label="后台口令", type="password", autofocus=True)
         admin_login_button = gr.Button("登录后台", variant="primary")
         admin_status = gr.Markdown()
+
+        gr.Markdown(
+            """
+**提示：** 由于安全原因，刷新页面后需要重新登录。输入密码后按回车键或点击按钮登录。
+            """,
+            elem_classes=["text-sm", "text-gray-500"]
+        )
 
         with gr.Group(visible=False) as admin_controls:
             with gr.Tabs():
@@ -1262,7 +1269,16 @@ def build_admin_app() -> gr.Blocks:
                     disable_code_button = gr.Button("禁用激活码", variant="stop")
                     enable_code_button = gr.Button("启用激活码", variant="secondary")
 
+        # 登录按钮点击事件
         admin_login_button.click(
+            fn=handle_admin_login,
+            inputs=[admin_password, admin_logged_state],
+            outputs=[admin_logged_state, admin_status, admin_controls, codes_table],
+            queue=False,
+        )
+
+        # 密码框按回车键登录
+        admin_password.submit(
             fn=handle_admin_login,
             inputs=[admin_password, admin_logged_state],
             outputs=[admin_logged_state, admin_status, admin_controls, codes_table],
@@ -1329,16 +1345,7 @@ def build_admin_app() -> gr.Blocks:
 def create_fastapi_app() -> FastAPI:
     main_app = FastAPI()
 
-    client_blocks = build_client_app()
-    admin_blocks = build_admin_app()
-
-    admin_sub_app = FastAPI(root_path="/azttsadmin")
-    admin_sub_app = gr.mount_gradio_app(admin_sub_app, admin_blocks, path="/", root_path="/azttsadmin")
-    main_app.mount("/azttsadmin", admin_sub_app)
-
-
-    main_app = gr.mount_gradio_app(main_app, client_blocks, path="/")
-
+    # 在挂载 Gradio 前先注册 manifest 路由，避免被 Gradio 的路由覆盖
     @main_app.get("/manifest.json")
     async def frontend_manifest():
         return {
@@ -1364,6 +1371,16 @@ def create_fastapi_app() -> FastAPI:
             "theme_color": "#0f172a",
             "icons": [],
         }
+
+    client_blocks = build_client_app()
+    admin_blocks = build_admin_app()
+
+    admin_sub_app = FastAPI(root_path="/azttsadmin")
+    admin_sub_app = gr.mount_gradio_app(admin_sub_app, admin_blocks, path="/", root_path="/azttsadmin")
+    main_app.mount("/azttsadmin", admin_sub_app)
+
+    # 最后挂载前台应用（使用根路径），确保其他路由不被覆盖
+    main_app = gr.mount_gradio_app(main_app, client_blocks, path="/")
 
     return main_app
 
