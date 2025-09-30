@@ -531,10 +531,12 @@ def build_codes_table_rows() -> List[List[str]]:
 def handle_admin_login(password: str, current_state: bool):
     password = (password or "").strip()
     if not password:
-        return current_state, "⚠️ 请输入后台口令。", gr.update()
+        return current_state, "⚠️ 请输入后台口令。", gr.update(), gr.update()
     if password != config.get_admin_password():
-        return False, "❌ 后台口令错误。", gr.update(visible=False)
-    return True, "✅ 后台登录成功。", gr.update(visible=True)
+        return False, "❌ 后台口令错误。", gr.update(visible=False), gr.update()
+    # 登录成功时刷新激活码列表
+    rows = build_codes_table_rows()
+    return True, "✅ 后台登录成功。", gr.update(visible=True), gr.update(value=rows)
 
 
 def handle_admin_generate(
@@ -1260,7 +1262,7 @@ def build_admin_app() -> gr.Blocks:
         admin_login_button.click(
             fn=handle_admin_login,
             inputs=[admin_password, admin_logged_state],
-            outputs=[admin_logged_state, admin_status, admin_controls],
+            outputs=[admin_logged_state, admin_status, admin_controls, codes_table],
             queue=False,
         )
 
