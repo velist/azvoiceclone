@@ -1379,6 +1379,22 @@ def create_fastapi_app() -> FastAPI:
     admin_sub_app = gr.mount_gradio_app(admin_sub_app, admin_blocks, path="/", root_path="/azttsadmin")
     main_app.mount("/azttsadmin", admin_sub_app)
 
+    # 添加版本检查路由
+    @main_app.get("/version")
+    async def version_check():
+        import subprocess
+        try:
+            commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
+                                            stderr=subprocess.DEVNULL).decode().strip()
+        except:
+            commit = "unknown"
+        return {
+            "version": "2.0",
+            "commit": commit,
+            "admin_login_fix": "2024-09-30-v5",  # 版本标记
+            "status": "ok"
+        }
+
     # 最后挂载前台应用（使用根路径），确保其他路由不被覆盖
     main_app = gr.mount_gradio_app(main_app, client_blocks, path="/")
 
