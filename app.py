@@ -1327,9 +1327,9 @@ def create_fastapi_app() -> FastAPI:
     client_blocks = build_client_app()
     admin_blocks = build_admin_app()
 
-    admin_sub_app = FastAPI(root_path="/azttsdamin")
-    admin_sub_app = gr.mount_gradio_app(admin_sub_app, admin_blocks, path="/", root_path="/azttsdamin")
-    main_app.mount("/azttsdamin", admin_sub_app)
+    admin_sub_app = FastAPI(root_path="/azttsadmin")
+    admin_sub_app = gr.mount_gradio_app(admin_sub_app, admin_blocks, path="/", root_path="/azttsadmin")
+    main_app.mount("/azttsadmin", admin_sub_app)
 
 
     main_app = gr.mount_gradio_app(main_app, client_blocks, path="/")
@@ -1347,12 +1347,12 @@ def create_fastapi_app() -> FastAPI:
             "icons": [],
         }
 
-    @main_app.get("/azttsdamin/manifest.json")
+    @main_app.get("/azttsadmin/manifest.json")
     async def admin_manifest():
         return {
             "name": "阿左声音克隆管理后台",
             "short_name": "克隆后台",
-            "start_url": "/azttsdamin/",
+            "start_url": "/azttsadmin/",
             "display": "standalone",
             "lang": "zh-CN",
             "background_color": "#ffffff",
@@ -1375,7 +1375,7 @@ if __name__ == "__main__":
     status_message = refresh_api_status()
     print(status_message)
     print("用户访问入口：http://{0}:{1}/".format(config.APP_HOST, config.APP_PORT))
-    print("后台管理入口：http://{0}:{1}/azttsdamin".format(config.APP_HOST, config.APP_PORT))
+    print("后台管理入口：http://{0}:{1}/azttsadmin".format(config.APP_HOST, config.APP_PORT))
 
     uvicorn.run(
         fastapi_app,
