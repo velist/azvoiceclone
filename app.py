@@ -1394,6 +1394,41 @@ def create_fastapi_app() -> FastAPI:
             "codes": [row[0] for row in rows] if rows else []
         }
 
+    @api_router.post("/api/restore_codes")
+    async def restore_codes():
+        """一键恢复用户原有激活码（临时端点）"""
+        import subprocess
+        import sys
+
+        try:
+            # 执行恢复脚本
+            result = subprocess.run(
+                [sys.executable, "restore_codes.py"],
+                capture_output=True,
+                text=True,
+                timeout=30
+            )
+
+            if result.returncode == 0:
+                return {
+                    "success": True,
+                    "message": "激活码恢复成功",
+                    "output": result.stdout,
+                    "codes": ["63R6LT28W9JIAXGN", "ZDPJ0A2NRWMDY0BO"]
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": "恢复失败",
+                    "error": result.stderr
+                }
+
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"执行出错: {str(e)}"
+            }
+
     @api_router.get("/manifest.json")
     async def frontend_manifest():
         return {
