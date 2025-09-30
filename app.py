@@ -1343,10 +1343,40 @@ def build_admin_app() -> gr.Blocks:
 
 
 def create_fastapi_app() -> FastAPI:
-    main_app = FastAPI()
+    # 创建 Gradio 应用
+    client_blocks = build_client_app()
+    admin_blocks = build_admin_app()
 
-    # 在挂载 Gradio 前先注册 manifest 路由，避免被 Gradio 的路由覆盖
-    @main_app.get("/manifest.json")
+    # 创建 FastAPI 应用（使用 APIRouter 来保护自定义路由）
+    from fastapi import APIRouter
+
+    api_router = APIRouter()
+
+    @api_router.get("/version")
+    async def version_check():
+        import subprocess
+        try:
+            commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
+                                            stderr=subprocess.DEVNULL).decode().strip()
+        except:
+            commit = "unknown"
+        return {
+            "version": "2.0",
+            "commit": commit,
+            "admin_login_fix": "2024-09-30-v5",
+            "status": "ok"
+        }
+
+    @api_router.get("/api/check_codes")
+    async def check_codes():
+        """检查激活码数据"""
+        rows = build_codes_table_rows()
+        return {
+            "count": len(rows),
+            "codes": [row[0] for row in rows] if rows else []
+        }
+
+    @api_router.get("/manifest.json")
     async def frontend_manifest():
         return {
             "name": "阿左声音克隆产品 2.0",
@@ -1359,7 +1389,7 @@ def create_fastapi_app() -> FastAPI:
             "icons": [],
         }
 
-    @main_app.get("/azttsadmin/manifest.json")
+    @api_router.get("/azttsadmin/manifest.json")
     async def admin_manifest():
         return {
             "name": "阿左声音克隆管理后台",
@@ -1372,30 +1402,16 @@ def create_fastapi_app() -> FastAPI:
             "icons": [],
         }
 
-    client_blocks = build_client_app()
-    admin_blocks = build_admin_app()
+    # 先创建主应用并注册 API 路由
+    main_app = FastAPI()
+    main_app.include_router(api_router)
 
+    # 挂载管理后台子应用
     admin_sub_app = FastAPI(root_path="/azttsadmin")
     admin_sub_app = gr.mount_gradio_app(admin_sub_app, admin_blocks, path="/", root_path="/azttsadmin")
     main_app.mount("/azttsadmin", admin_sub_app)
 
-    # 添加版本检查路由
-    @main_app.get("/version")
-    async def version_check():
-        import subprocess
-        try:
-            commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD'],
-                                            stderr=subprocess.DEVNULL).decode().strip()
-        except:
-            commit = "unknown"
-        return {
-            "version": "2.0",
-            "commit": commit,
-            "admin_login_fix": "2024-09-30-v5",  # 版本标记
-            "status": "ok"
-        }
-
-    # 最后挂载前台应用（使用根路径），确保其他路由不被覆盖
+    # 最后挂载前台应用（使用根路径）
     main_app = gr.mount_gradio_app(main_app, client_blocks, path="/")
 
     return main_app
