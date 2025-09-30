@@ -1,0 +1,25 @@
+name: Keep Render Service Alive
+
+on:
+  schedule:
+    # 每10分钟运行一次（Render 免费版15分钟无活动会休眠）
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # 允许手动触发
+
+jobs:
+  keep-alive:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 访问主页保持活跃
+        run: |
+          echo "正在访问服务以保持活跃..."
+          curl -f -s -o /dev/null -w "主页状态码: %{http_code}\n" https://vipvoice3.aipush.fun/ || echo "主页访问失败"
+
+      - name: 访问管理后台保持活跃
+        run: |
+          echo "正在访问管理后台..."
+          curl -f -s -o /dev/null -w "管理后台状态码: %{http_code}\n" https://vipvoice3.aipush.fun/azttsadmin/ || echo "管理后台访问失败"
+
+      - name: 完成
+        run: echo "保活任务完成 - $(date)"
