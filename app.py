@@ -1366,7 +1366,12 @@ def create_fastapi_app() -> FastAPI:
 fastapi_app = create_fastapi_app()
 
 if __name__ == "__main__":
+    import os
     print("正在启动阿左声音克隆产品 2.0...")
+    print(f"[DEBUG] APP_HOST from os.getenv: {os.getenv('APP_HOST', 'NOT_SET')}")
+    print(f"[DEBUG] APP_PORT from os.getenv: {os.getenv('APP_PORT', 'NOT_SET')}")
+    print(f"[DEBUG] config.APP_HOST: {config.APP_HOST}")
+    print(f"[DEBUG] config.APP_PORT: {config.APP_PORT}")
     status_message = refresh_api_status()
     print(status_message)
     print("用户访问入口：http://{0}:{1}/".format(config.APP_HOST, config.APP_PORT))
