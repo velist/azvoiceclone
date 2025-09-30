@@ -1222,7 +1222,7 @@ def build_admin_app() -> gr.Blocks:
                 with gr.Tab("激活码列表与维护"):
                     refresh_codes_button = gr.Button("刷新列表", variant="secondary")
                     codes_table = gr.DataFrame(
-                        value=build_codes_table_rows(),
+                        value=[],  # 初始为空，登录时才加载
                         headers=[
                             "激活码",
                             "音色额度",
