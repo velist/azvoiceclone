@@ -531,11 +531,14 @@ def build_codes_table_rows() -> List[List[str]]:
 def handle_admin_login(password: str, current_state: bool):
     password = (password or "").strip()
     if not password:
-        return current_state, "⚠️ 请输入后台口令。", gr.update(), gr.update()
+        return current_state, "⚠️ 请输入后台口令。", gr.update(), gr.update(value=[])
     if password != config.get_admin_password():
-        return False, "❌ 后台口令错误。", gr.update(visible=False), gr.update()
+        return False, "❌ 后台口令错误。", gr.update(visible=False), gr.update(value=[])
     # 登录成功时刷新激活码列表
     rows = build_codes_table_rows()
+    print(f"[后台登录] 读取到 {len(rows)} 个激活码，准备更新表格")
+    if rows:
+        print(f"[后台登录] 第一个激活码: {rows[0][0]}")
     return True, "✅ 后台登录成功。", gr.update(visible=True), gr.update(value=rows)
 
 
@@ -1222,7 +1225,7 @@ def build_admin_app() -> gr.Blocks:
                 with gr.Tab("激活码列表与维护"):
                     refresh_codes_button = gr.Button("刷新列表", variant="secondary")
                     codes_table = gr.DataFrame(
-                        value=[],  # 初始为空，登录时才加载
+                        value=[],  # 初始为空，登录后通过 handle_admin_login 更新
                         headers=[
                             "激活码",
                             "音色额度",
