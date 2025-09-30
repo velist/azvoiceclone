@@ -16,6 +16,24 @@ import uvicorn
 import config
 from activation_manager import ActivationError, ActivationManager
 
+# 自动检测并选择存储后端
+def _create_activation_manager():
+    """创建激活码管理器，优先使用 PostgreSQL"""
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url:
+        try:
+            from db_activation_manager import DatabaseActivationManager
+            print("[激活码管理] 检测到 DATABASE_URL，使用 PostgreSQL 持久化存储")
+            return DatabaseActivationManager(database_url)
+        except Exception as e:
+            print(f"[激活码管理] PostgreSQL 初始化失败: {e}")
+            print("[激活码管理] 降级使用 JSON 文件存储")
+
+    from pathlib import Path
+    print("[激活码管理] 使用 JSON 文件存储（本地开发模式）")
+    return ActivationManager(Path("activation_codes.json"))
+
 
 REQUEST_TIMEOUT = (10, 120)
 MAX_REFERENCE_FILE_SIZE_MB = 10
@@ -28,7 +46,7 @@ button[data-testid="view-api"] {display: none !important;}
 div[data-testid="block-info"] {display: none !important;}
 """
 
-ACTIVATION_MANAGER = ActivationManager(config.ACTIVATION_STORE_PATH)
+ACTIVATION_MANAGER = _create_activation_manager()
 
 ADVANCED_PRESETS = {
     "魔搭示例": {

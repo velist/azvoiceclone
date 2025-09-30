@@ -1,0 +1,9 @@
+@echo off
+echo 声音克隆系统启动中...
+echo.
+echo 正在安装/更新依赖包...
+pip install -r requirements.txt
+echo.
+echo 正在启动应用...
+python app.py
+pause

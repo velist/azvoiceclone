@@ -1,0 +1,34 @@
+﻿==========================================
+IndexTTS2 声音克隆 - 快速启动指南
+==========================================
+
+方法一：一键脚本（推荐）
+--------------------------
+1. 双击运行 `setup_and_run.py`
+2. 选择 `3`（先安装依赖再启动程序）
+
+方法二：命令行手动操作
+--------------------------
+在项目目录执行：
+
+1. `python -m pip install --upgrade pip`
+2. `pip install -r requirements.txt`
+3. `python app.py`
+
+方法三：单独测试接口
+--------------------------
+`python test_api.py`
+
+常见问题
+--------------------------
+1. **提示找不到 python**：请先安装 Python 3.8+ 并勾选 “Add Python to PATH”。
+2. **提示找不到 pip**：使用 `python -m ensurepip --upgrade` 或 `python -m pip install ...`。
+3. **端口被占用**：将 `config.APP_PORT` 改为未占用的端口。
+4. **API 密钥错误**：确认 `siliconflowkey.env` 内格式为 `API_KEY=你的密钥`。
+5. **Invalid voice**：
+   - 文本转语音请填写官方提供的音色 ID；
+   - 声音克隆首次需上传参考音频获取 `speech:` URI，界面会自动保存显示，勾选“复用最近生成的音色”即可再次使用。
+
+更多资料：IndexTTS 官方中文文档 https://github.com/index-tts/index-tts/blob/main/docs/README_zh.md
+
+==========================================
