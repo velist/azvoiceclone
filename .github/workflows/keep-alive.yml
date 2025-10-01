@@ -2,8 +2,9 @@ name: Keep Render Service Alive
 
 on:
   schedule:
-    # 每10分钟运行一次（Render 免费版15分钟无活动会休眠）
-    - cron: '*/10 * * * *'
+    # 每5分钟运行一次（Render 免费版15分钟无活动会休眠）
+    # 使用更短的间隔确保持续活跃
+    - cron: '*/5 * * * *'
   workflow_dispatch: # 允许手动触发
 
 jobs:
@@ -11,15 +12,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 访问主页保持活跃
+      - name: 唤醒应用 - 访问 API 端点
         run: |
-          echo "正在访问服务以保持活跃..."
-          curl -f -s -o /dev/null -w "主页状态码: %{http_code}\n" https://vipvoice3.aipush.fun/ || echo "主页访问失败"
+          echo "正在唤醒 Render 应用..."
+          # 访问需要数据库查询的 API，确保真正执行 Python 代码
+          response=$(curl -s -w "\n%{http_code}" https://vipvoice3.aipush.fun/api/check_codes)
+          status_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | head -n-1)
 
-      - name: 访问管理后台保持活跃
+          echo "状态码: $status_code"
+          echo "响应: $body"
+
+          if [ "$status_code" = "200" ]; then
+            echo "✓ 应用已唤醒并响应"
+          else
+            echo "✗ 应用可能休眠中，状态码: $status_code"
+          fi
+
+      - name: 访问主页触发 Gradio
         run: |
-          echo "正在访问管理后台..."
-          curl -f -s -o /dev/null -w "管理后台状态码: %{http_code}\n" https://vipvoice3.aipush.fun/azttsadmin/ || echo "管理后台访问失败"
+          echo "访问 Gradio 界面..."
+          curl -s -o /dev/null -w "主页状态码: %{http_code}\n" https://vipvoice3.aipush.fun/
 
       - name: 完成
-        run: echo "保活任务完成 - $(date)"
+        run: echo "✓ 保活任务完成 - $(date)"
